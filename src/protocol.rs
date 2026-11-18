@@ -79,6 +79,13 @@ fn declared(now: &Settings) -> Value {
             "descriptions": { "ru": "Из черноты и тишины; 0 - сразу." }
         },
         {
+            "key": "output", "type": "text", "default": now.output,
+            "label": "Where a video goes when the work has no folder",
+            "labels": { "ru": "Куда класть видео, если у работы нет папки" },
+            "description": "A whole path to a folder. A work has a folder once the workspace's media folder is chosen; until then its video goes here.",
+            "descriptions": { "ru": "Полный путь к папке. У работы есть папка, когда выбрана папка медиа пространства; до тех пор видео кладётся сюда." }
+        },
+        {
             "key": "fade_out", "type": "number", "min": 0, "step": 0.5, "default": now.fade_out,
             "label": "Fade out, seconds", "labels": { "ru": "Затухание, секунд" },
             "description": "To black and to silence at the end; 0 stops at once.",
@@ -157,6 +164,19 @@ pub struct Subject {
     /// The works it is made from, each with its finished file.
     #[serde(default)]
     pub donors: Vec<Donor>,
+    /// The files attached to it, oldest first (kilna v0.148): a track kept
+    /// on the work's Files tab rather than in its folder.
+    #[serde(default)]
+    pub files: Vec<Attached>,
+}
+
+/// A file attached to a work.
+#[derive(Debug, Clone, Deserialize)]
+pub struct Attached {
+    pub path: String,
+    /// What the world outside calls it: the name it arrived under.
+    #[serde(default)]
+    pub name: Option<String>,
 }
 
 impl Subject {
@@ -271,7 +291,8 @@ mod tests {
                 "file": { "state": "found", "rule": "audio", "relative": "mix.wav", "path": "C:/space/media/w-1/mix.wav" },
                 "cover": "C:/space/media/w-1/cover.png",
                 "meta": { "simple_video": { "tail": 2 } },
-                "donors": [{ "id": "w-0", "title": "Song", "kind": "song", "folder": null, "file": null }]
+                "donors": [{ "id": "w-0", "title": "Song", "kind": "song", "folder": null, "file": null }],
+                "files": [{ "kind": "attachment", "path": "C:/space/media/a1.wav", "name": "mix.wav" }]
             },
             "settings": { "preset": "quality" }
         });
@@ -282,5 +303,6 @@ mod tests {
         );
         assert_eq!(invocation.subject.donors[0].path(), None);
         assert!(invocation.subject.meta.contains_key("simple_video"));
+        assert_eq!(invocation.subject.files[0].name.as_deref(), Some("mix.wav"));
     }
 }

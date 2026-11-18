@@ -31,8 +31,9 @@ pub enum Picture {
 }
 
 /// The picture and the track of a work: its cover - a picture or a loop -
-/// and its finished file when that is a track, or else the first work it is
-/// made from whose finished file is one.
+/// and its finished file when that is a track, or else the newest track
+/// attached to it, or else the first work it is made from whose finished
+/// file is one.
 pub fn sources(subject: &Subject) -> Result<(Picture, PathBuf), String> {
     let cover = subject
         .cover
@@ -48,6 +49,18 @@ pub fn sources(subject: &Subject) -> Result<(Picture, PathBuf), String> {
         .file_path()
         .filter(is_track)
         .or_else(|| {
+            // Known by its stored name, or by the name it arrived under.
+            subject
+                .files
+                .iter()
+                .rev()
+                .find(|file| {
+                    is_track(&file.path.as_str())
+                        || file.name.as_deref().is_some_and(|name| is_track(&name))
+                })
+                .map(|file| file.path.as_str())
+        })
+        .or_else(|| {
             subject
                 .donors
                 .iter()
@@ -58,12 +71,16 @@ pub fn sources(subject: &Subject) -> Result<(Picture, PathBuf), String> {
     Ok((picture, PathBuf::from(track)))
 }
 
-/// The file a work's video goes to: its title, in its folder.
-pub fn output(subject: &Subject) -> Result<PathBuf, String> {
+/// The file a work's video goes to: its title, in its folder - or in the
+/// folder the settings name for a work kilna names none for.
+pub fn output(subject: &Subject, settings: &Settings) -> Result<PathBuf, String> {
     let folder = subject
         .folder
         .as_deref()
-        .ok_or("the work has no folder to put the video in")?;
+        .or_else(|| (!settings.output.is_empty()).then_some(settings.output.as_str()))
+        .ok_or(
+            "the work has no folder to put the video in: choose the workspace's media folder in kilna, or a folder for such videos in this plugin's settings",
+        )?;
     Ok(Path::new(folder).join(format!("{}.mp4", file_name(&subject.title))))
 }
 
@@ -215,7 +232,7 @@ pub fn render(
     on_share: &mut dyn FnMut(f64),
 ) -> Result<PathBuf, String> {
     let (picture, track) = sources(subject)?;
-    let out = output(subject)?;
+    let out = output(subject, settings)?;
     let timeline = Timeline::of(&subject.meta)?;
     let length = ffmpeg::length(tools, &track)?;
     let plan = Plan::new(length, settings, timeline.as_ref());
@@ -322,6 +339,44 @@ mod tests {
         assert!(
             said.contains("afade=t=out:st=54:d=6"),
             "the sound fades at its own end"
+        );
+    }
+
+    #[test]
+    fn a_track_attached_to_the_work_is_taken_when_its_folder_has_none() {
+        let subject: Subject = serde_json::from_value(serde_json::json!({
+            "title": "Clip",
+            "cover": "C:/space/media/c.png",
+            "file": { "state": "noFolder" },
+            "files": [
+                { "path": "C:/space/media/old.wav" },
+                { "path": "C:/space/media/notes.txt" },
+                { "path": "C:/space/media/new.flac" }
+            ]
+        }))
+        .unwrap();
+        let (picture, track) = sources(&subject).unwrap();
+        assert_eq!(picture, Picture::Still("C:/space/media/c.png".into()));
+        assert_eq!(
+            track,
+            PathBuf::from("C:/space/media/new.flac"),
+            "the newest track"
+        );
+    }
+
+    #[test]
+    fn a_work_with_no_folder_renders_into_the_folder_the_settings_name() {
+        let subject: Subject =
+            serde_json::from_value(serde_json::json!({ "title": "Clip" })).unwrap();
+        let refused = output(&subject, &Settings::default()).unwrap_err();
+        assert!(refused.contains("media folder"), "{refused}");
+        let settings = Settings {
+            output: "D:/renders".into(),
+            ..Settings::default()
+        };
+        assert_eq!(
+            output(&subject, &settings).unwrap(),
+            Path::new("D:/renders").join("Clip.mp4")
         );
     }
 

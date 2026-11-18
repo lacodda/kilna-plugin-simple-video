@@ -65,7 +65,22 @@ pub fn length(tools: &Tools, path: &Path) -> Result<f64, String> {
     String::from_utf8_lossy(&output.stdout)
         .trim()
         .parse()
-        .map_err(|_| format!("ffprobe could not say how long {} runs", path.display()))
+        .map_err(|_| {
+            // What ffprobe said is the reason: "Invalid data found when
+            // processing input" is a file that is not what its name says.
+            let said = String::from_utf8_lossy(&output.stderr);
+            let reason = said
+                .lines()
+                .rev()
+                .find(|line| !line.trim().is_empty())
+                .map(|line| line.rsplit(": ").next().unwrap_or(line).trim().to_owned())
+                .unwrap_or_default();
+            if reason.is_empty() {
+                format!("ffprobe could not say how long {} runs", path.display())
+            } else {
+                format!("ffprobe could not read {}: {reason}", path.display())
+            }
+        })
 }
 
 /// Run ffmpeg with `args` and hand back everything it said on stderr - what

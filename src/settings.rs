@@ -91,6 +91,10 @@ pub struct Settings {
     pub fade_in: f64,
     /// Seconds of fade to black and to silence at the end.
     pub fade_out: f64,
+    /// A folder, whole, for the video of a work kilna names no folder for:
+    /// a workspace with no media folder chosen. Empty: such a work is not
+    /// rendered, and says why.
+    pub output: String,
 }
 
 impl Default for Settings {
@@ -104,6 +108,7 @@ impl Default for Settings {
             normalize: false,
             fade_in: 0.0,
             fade_out: 6.0,
+            output: String::new(),
         }
     }
 }
@@ -150,6 +155,7 @@ impl Settings {
             fade_out: number("fade_out")
                 .filter(|seconds| *seconds >= 0.0)
                 .unwrap_or(base.fade_out),
+            output: text("output").map(str::trim).unwrap_or_default().to_owned(),
         }
     }
 }

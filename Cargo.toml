@@ -1,0 +1,23 @@
+[package]
+name = "kilna-plugin-simple-video"
+version = "0.1.0"
+description = "Renders a simple video for kilna: a picture or a loop over a track, at a stream's 1080p or a 4K master, with fades and the loudness a platform wants."
+authors = ["Kirill Lakhtachev <lahtachev@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/lacodda/kilna-plugin-simple-video"
+edition = "2024"
+rust-version = "1.85"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = { level = "deny", priority = -1 }
+
+[profile.release]
+strip = true
+lto = "thin"

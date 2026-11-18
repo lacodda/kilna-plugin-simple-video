@@ -45,22 +45,7 @@ try {
 }
 Write-Host "Installed kilna-plugin-simple-video $tag to $dir\kilna-plugin-simple-video.exe"
 
-# The settings stay as the person wrote them: an example is written only when
-# there is none, and never over one.
-$settings = Join-Path $dir "kilna-plugin-simple-video.json"
-if (-not (Test-Path $settings)) {
-    $example = @'
-{
-  "channel": "",
-  "call": "FULL VERSION",
-  "cover_seconds": 0.5
-}
-'@
-    [IO.File]::WriteAllText($settings, $example, (New-Object Text.UTF8Encoding $false))
-    Write-Host "Wrote $settings - put your channel's name in it."
-}
-
 if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
     Write-Host "Note: ffmpeg is not on your PATH; the plugin needs it (winget install Gyan.FFmpeg)."
 }
-Write-Host "In kilna, 'Cut the short' now stands on a short's Cuts tab."
+Write-Host "In kilna, 'Render the video' now stands on a work; its settings are in Settings, Plugins."

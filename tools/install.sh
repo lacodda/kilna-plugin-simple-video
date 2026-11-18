@@ -52,11 +52,5 @@ mkdir -p "$DIR"
 install -m 755 "$BIN" "$DIR/kilna-plugin-simple-video"
 echo "Installed kilna-plugin-simple-video $TAG to $DIR/kilna-plugin-simple-video"
 
-# The settings stay as the person wrote them: an example only when there is none.
-if [ ! -f "$DIR/kilna-plugin-simple-video.json" ]; then
-    printf '{\n  "channel": "",\n  "call": "FULL VERSION",\n  "cover_seconds": 0.5\n}\n' > "$DIR/kilna-plugin-simple-video.json"
-    echo "Wrote $DIR/kilna-plugin-simple-video.json - put your channel's name in it."
-fi
-
 command -v ffmpeg >/dev/null 2>&1 || echo "Note: ffmpeg is not on your PATH; the plugin needs it."
-echo "In kilna, 'Cut the short' now stands on a short's Cuts tab."
+echo "In kilna, 'Render the video' now stands on a work; its settings are in Settings, Plugins."

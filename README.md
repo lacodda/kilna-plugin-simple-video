@@ -29,8 +29,8 @@ The installer puts the plugin in kilna's `plugins` folder; its settings stand in
 ## What a render makes
 
 - **The picture** is the work's cover: a still (`jpg`, `png`, `webp`…) or a loop (`mp4`, `mov`, `webm`…), which plays over and over for as long as the video runs. It is fitted into the frame over black, never cropped.
-- **The track** is the work's finished file when that is a track (`wav`, `flac`, `mp3`, `m4a`…), or else the finished track of the first work it is made from - a clip renders over the song's audio.
-- **The file** is `<title>.mp4` in the work's folder; a render again writes over it. kilna takes it as the work's finished file where the kind's rule would not find one by itself.
+- **The track** is the work's finished file when that is a track (`wav`, `flac`, `mp3`, `m4a`…), or else the newest track attached to the work on its Files tab (kilna 0.148 and later hands them over), or else the finished track of the first work it is made from - a clip renders over the song's audio.
+- **The file** is `<title>.mp4` in the work's folder; a render again writes over it. kilna takes it as the work's finished file where the kind's rule would not find one by itself. A work has a folder once the workspace's media folder is chosen in kilna; until then its video goes to the folder named by `output`, and with none named the render says so.
 
 ### Presets
 
@@ -79,6 +79,7 @@ In kilna: **Settings → Plugins**.
 | `loudness` | `-14` | LUFS: what YouTube and Spotify want. Also what a measure is against. |
 | `fade_in` | `0` | Seconds from black and from silence at the start. |
 | `fade_out` | `6` | Seconds to black and to silence at the end. |
+| `output` | empty | A whole path to a folder for the video of a work kilna names no folder for. |
 
 ## Protocol
 
